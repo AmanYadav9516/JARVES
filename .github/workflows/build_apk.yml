@@ -1,9 +1,7 @@
-name: Build JARVES Android APK
+name: Build JARVES Android APK & Deploy Release
 
 on:
   push:
-    branches: [ "main", "master" ]
-  pull_request:
     branches: [ "main", "master" ]
   workflow_dispatch:
 
@@ -32,3 +30,14 @@ jobs:
       with:
         name: JARVES-AI-Assistant.apk
         path: app/build/outputs/apk/debug/app-debug.apk
+
+    - name: Create Automatic Release
+      uses: softprops/action-gh-release@v2
+      if: startsWith(github.ref, 'refs/heads/main')
+      with:
+        tag_name: v1.0.0
+        name: "JARVES AI v1.0.0 Official Android Release"
+        body: "Official 20MB+ installable APK build for JARVES AI Assistant."
+        files: app/build/outputs/apk/debug/app-debug.apk
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
