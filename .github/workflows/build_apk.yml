@@ -20,16 +20,15 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-        cache: gradle
 
-    - name: Grant Execute Permission for Gradle Wrapper
-      run: chmod +x gradlew || true
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
 
-    - name: Build Debug APK
-      run: ./gradlew assembleDebug --no-daemon || true
+    - name: Build Debug APK with Gradle
+      run: gradle assembleDebug
 
     - name: Upload JARVES APK Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: JARVES-AI-Assistant-Debug.apk
+        name: JARVES-AI-Assistant.apk
         path: app/build/outputs/apk/debug/app-debug.apk
