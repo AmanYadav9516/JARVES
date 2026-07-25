@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">JARVES AI</string>
+    <string name="slogan">Your Autonomous AI Voice Assistant</string>
+    <string name="wake_word">Jarves</string>
+</resources>
