@@ -13,7 +13,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.jarves.ai.auth.AuthViewModel
 import com.jarves.ai.auth.LoginScreen
 import com.jarves.ai.auth.SignUpScreen
@@ -40,7 +39,7 @@ class MainActivity : AppCompatActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = Color(0xFF0A0D14)
                 ) {
-                    val authViewModel: AuthViewModel = viewModel()
+                    val authViewModel = remember { AuthViewModel() }
                     var currentScreen by remember { mutableStateOf("home") }
 
                     if (!authViewModel.isLoggedIn) {
