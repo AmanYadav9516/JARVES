@@ -9,7 +9,9 @@ class JarvesApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        createNotificationChannels()
+        runCatching {
+            createNotificationChannels()
+        }
     }
 
     private fun createNotificationChannels() {

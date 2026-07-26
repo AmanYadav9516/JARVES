@@ -77,7 +77,7 @@ class JarvesOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner 
             .build()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            startForeground(1001, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+            startForeground(1001, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE)
         } else {
             startForeground(1001, notification)
         }
