@@ -141,7 +141,7 @@ fun HomeScreen(
 
                     Switch(
                         checked = isOverlayEnabled,
-                        onCheckedValueChange = { enabled ->
+                        onCheckedChange = { enabled ->
                             isOverlayEnabled = enabled
                             if (enabled) {
                                 if (Settings.canDrawOverlays(context)) {

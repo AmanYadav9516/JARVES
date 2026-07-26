@@ -30,7 +30,7 @@ class MainActivity : ComponentActivity() {
     ) { permissions -> }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate()
+        super.onCreate(savedInstanceState)
         requestJarvesPermissions()
 
         setContent {
