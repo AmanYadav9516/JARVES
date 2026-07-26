@@ -5,6 +5,10 @@ on:
     branches: [ "main", "master" ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -25,6 +29,11 @@ jobs:
     - name: Build Debug APK with Gradle
       run: gradle assembleDebug
 
+    - name: Copy Compiled APK to Root & Website
+      run: |
+        cp app/build/outputs/apk/debug/app-debug.apk website/JARVES-AI-v1.0.0.apk
+        cp app/build/outputs/apk/debug/app-debug.apk JARVES-AI-v1.0.0.apk
+
     - name: Upload JARVES APK Artifact
       uses: actions/upload-artifact@v4
       with:
@@ -33,7 +42,6 @@ jobs:
 
     - name: Create Automatic Release
       uses: softprops/action-gh-release@v2
-      if: startsWith(github.ref, 'refs/heads/main')
       with:
         tag_name: v1.0.0
         name: "JARVES AI v1.0.0 Official Android Release"
