@@ -11,6 +11,7 @@ class JarvesExecutionPipeline(private val context: Context) {
     private val batteryController = BatteryController(context)
     private val youtubeController = YouTubeController(context)
     private val taskScheduler = TaskScheduler(context)
+    private val appLauncherController = AppLauncherController(context)
     private val ttsManager = JarvesTTSManager(context)
 
     fun executeActions(actions: List<JarvesAction>): String {
@@ -47,6 +48,9 @@ class JarvesExecutionPipeline(private val context: Context) {
                 }
                 is JarvesAction.SetReminder -> {
                     taskScheduler.scheduleReminder(action.message, action.delayMinutes)
+                }
+                is JarvesAction.LaunchApp -> {
+                    appLauncherController.launchApp(action.appName)
                 }
                 is JarvesAction.GeneralQuery -> {
                     "Sir, processing '${action.prompt}'..."

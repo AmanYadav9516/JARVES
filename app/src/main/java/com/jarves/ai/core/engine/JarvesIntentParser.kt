@@ -45,7 +45,7 @@ class JarvesIntentParser {
                 }
 
                 // YouTube
-                cmd.contains("youtube") || cmd.contains("गाने चलाओ") || cmd.contains("play song") -> {
+                cmd.contains("youtube") || cmd.contains("गाने चलाओ") || cmd.contains("play song") || cmd.contains("संगीत") -> {
                     val query = extractYouTubeQuery(cmd)
                     actions.add(JarvesAction.PlayYouTube(query))
                 }
@@ -69,6 +69,12 @@ class JarvesIntentParser {
                     val minutes = extractMinutes(cmd)
                     val textMsg = extractReminderText(cmd)
                     actions.add(JarvesAction.SetReminder(textMsg, minutes))
+                }
+
+                // App Launchers (Settings, Gallery, File Manager, WhatsApp, etc.)
+                cmd.contains("open") || cmd.contains("खोलो") || cmd.contains("चलाओ") -> {
+                    val appName = extractAppName(cmd)
+                    actions.add(JarvesAction.LaunchApp(appName))
                 }
 
                 else -> {
@@ -95,8 +101,19 @@ class JarvesIntentParser {
             .replace("चलाओ", "")
             .replace("play", "")
             .replace("song", "")
+            .replace("music", "")
+            .replace("गाने", "")
             .trim()
             .ifEmpty { "Arijit Singh songs" }
+    }
+
+    private fun extractAppName(text: String): String {
+        return text.replace("open", "")
+            .replace("खोलो", "")
+            .replace("ऐप", "")
+            .replace("app", "")
+            .trim()
+            .ifEmpty { "settings" }
     }
 
     private fun extractMinutes(text: String): Long {
