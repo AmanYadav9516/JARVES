@@ -3,16 +3,22 @@ package com.jarves.ai.service
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.graphics.PixelFormat
 import android.os.Build
 import android.os.IBinder
 import android.view.Gravity
-import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.app.NotificationCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.setViewTreeLifecycleOwner
+import androidx.savedstate.SavedStateRegistry
+import androidx.savedstate.SavedStateRegistryController
+import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.jarves.ai.JarvesApplication
 import com.jarves.ai.components.GlowingAiCore
@@ -21,7 +27,7 @@ import com.jarves.ai.core.engine.JarvesIntentParser
 import com.jarves.ai.core.engine.JarvesVoiceManager
 import com.jarves.ai.theme.JarvesTheme
 
-class JarvesOverlayService : Service() {
+class JarvesOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
 
     private var windowManager: WindowManager? = null
     private var overlayView: View? = null
@@ -29,9 +35,22 @@ class JarvesOverlayService : Service() {
     private lateinit var intentParser: JarvesIntentParser
     private lateinit var executionPipeline: JarvesExecutionPipeline
 
+    private val lifecycleRegistry = LifecycleRegistry(this)
+    private val savedStateRegistryController = SavedStateRegistryController.create(this)
+
+    override val lifecycle: Lifecycle get() = lifecycleRegistry
+    override val savedStateRegistry: SavedStateRegistry get() = savedStateRegistryController.savedStateRegistry
+
     override fun onCreate() {
         super.onCreate()
-        startForegroundService()
+        savedStateRegistryController.performRestore(null)
+        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
+        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
+        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
+
+        runCatching {
+            startForegroundService()
+        }
 
         windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
         intentParser = JarvesIntentParser()
@@ -54,9 +73,14 @@ class JarvesOverlayService : Service() {
             .setContentTitle("JARVES AI Active")
             .setContentText("Listening for wake word 'Jarves'")
             .setSmallIcon(android.R.drawable.ic_btn_speak_now)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
             .build()
 
-        startForeground(1001, notification)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            startForeground(1001, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+        } else {
+            startForeground(1001, notification)
+        }
     }
 
     private fun setupFloatingOverlay() {
@@ -75,6 +99,8 @@ class JarvesOverlayService : Service() {
         }
 
         val composeView = ComposeView(this).apply {
+            setViewTreeLifecycleOwner(this@JarvesOverlayService)
+            setViewTreeSavedStateRegistryOwner(this@JarvesOverlayService)
             setContent {
                 JarvesTheme {
                     GlowingAiCore(
@@ -97,8 +123,9 @@ class JarvesOverlayService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
         if (overlayView != null) {
-            windowManager?.removeView(overlayView)
+            runCatching { windowManager?.removeView(overlayView) }
         }
         voiceManager.destroy()
         executionPipeline.shutdown()

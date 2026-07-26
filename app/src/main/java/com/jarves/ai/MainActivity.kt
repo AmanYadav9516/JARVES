@@ -7,13 +7,13 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.jarves.ai.auth.AuthViewModel
 import com.jarves.ai.auth.LoginScreen
 import com.jarves.ai.auth.SignUpScreen
@@ -23,15 +23,16 @@ import com.jarves.ai.ui.SettingsScreen
 
 class MainActivity : ComponentActivity() {
 
-    private val authViewModel: AuthViewModel by viewModels()
-
     private val requestPermissionsLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions -> }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        requestJarvesPermissions()
+
+        runCatching {
+            requestJarvesPermissions()
+        }
 
         setContent {
             JarvesTheme {
@@ -39,6 +40,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = Color(0xFF0A0D14)
                 ) {
+                    val authViewModel: AuthViewModel = viewModel()
                     var currentScreen by remember { mutableStateOf("home") }
 
                     if (!authViewModel.isLoggedIn) {
