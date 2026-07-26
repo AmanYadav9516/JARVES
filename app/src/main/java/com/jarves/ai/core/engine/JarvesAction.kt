@@ -12,5 +12,7 @@ sealed class JarvesAction {
     data class ScheduleSms(val contact: String, val message: String, val delayMinutes: Long) : JarvesAction()
     data class SetReminder(val message: String, val delayMinutes: Long) : JarvesAction()
     data class LaunchApp(val appName: String) : JarvesAction()
+    data class RecordMoney(val person: String, val amount: Double, val isReceive: Boolean = true) : JarvesAction()
+    data class QueryMoney(val person: String) : JarvesAction()
     data class GeneralQuery(val prompt: String) : JarvesAction()
 }

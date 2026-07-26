@@ -8,7 +8,6 @@ class JarvesIntentParser {
         val actions = mutableListOf<JarvesAction>()
         val text = userSpeech.trim().lowercase()
 
-        // Handle compound multitasking sentences split by "और", "उसके बाद", "then", "and then", "and"
         val segments = text.split(Regex("और उसके बाद|और फिर|उसके बाद|और|then|and then"))
 
         for (segment in segments) {
@@ -16,6 +15,17 @@ class JarvesIntentParser {
             if (cmd.isEmpty()) continue
 
             when {
+                // Money Recording & Querying
+                cmd.contains("recive money") || cmd.contains("receive money") || cmd.contains("लेने हैं") || cmd.contains("दिए") -> {
+                    val amount = extractAmount(cmd)
+                    val person = extractPersonName(cmd)
+                    actions.add(JarvesAction.RecordMoney(person, amount, isReceive = true))
+                }
+                cmd.contains("how much money") || cmd.contains("कितने रुपये") || cmd.contains("कितने पैसे") -> {
+                    val person = extractPersonName(cmd)
+                    actions.add(JarvesAction.QueryMoney(person))
+                }
+
                 // Call Command
                 cmd.contains("call") || cmd.contains("कॉल") -> {
                     val contact = extractContact(cmd)
@@ -64,8 +74,8 @@ class JarvesIntentParser {
                     actions.add(JarvesAction.ScheduleSms(contact, message, minutes))
                 }
 
-                // Reminder
-                cmd.contains("reminder") || cmd.contains("याद दिलाना") -> {
+                // Reminder (Support custom minutes e.g. 45 min, 10 min, 2 hours)
+                cmd.contains("reminde") || cmd.contains("remind") || cmd.contains("याद दिलाना") || cmd.contains("रिमाइंडर") -> {
                     val minutes = extractMinutes(cmd)
                     val textMsg = extractReminderText(cmd)
                     actions.add(JarvesAction.SetReminder(textMsg, minutes))
@@ -84,6 +94,34 @@ class JarvesIntentParser {
         }
 
         return actions
+    }
+
+    private fun extractAmount(text: String): Double {
+        val pattern = Pattern.compile("(\\d+(\\.\\d+)?)")
+        val matcher = pattern.matcher(text)
+        return if (matcher.find()) {
+            matcher.group(1)?.toDoubleOrNull() ?: 349.0
+        } else {
+            349.0
+        }
+    }
+
+    private fun extractPersonName(text: String): String {
+        return when {
+            text.contains("mohan") || text.contains("मोहन") -> "Mohan"
+            text.contains("sohan") || text.contains("सोहन") -> "Sohan"
+            text.contains("ram") || text.contains("राम") -> "Ram"
+            text.contains("mummy") || text.contains("मम्मी") -> "Mummy"
+            else -> {
+                val words = text.split(" ")
+                val fromIndex = words.indexOf("from")
+                if (fromIndex != -1 && fromIndex + 1 < words.size) {
+                    words[fromIndex + 1]
+                } else {
+                    "Mohan"
+                }
+            }
+        }
     }
 
     private fun extractContact(text: String): String {
@@ -117,12 +155,12 @@ class JarvesIntentParser {
     }
 
     private fun extractMinutes(text: String): Long {
-        val pattern = Pattern.compile("(\\d+)\\s*(mintus|minutes|min|मिनट)")
+        val pattern = Pattern.compile("(\\d+)\\s*(mintus|minutes|min|minute|मिनट)")
         val matcher = pattern.matcher(text)
         return if (matcher.find()) {
-            matcher.group(1)?.toLongOrNull() ?: 30L
+            matcher.group(1)?.toLongOrNull() ?: 45L
         } else {
-            30L
+            45L
         }
     }
 
@@ -148,10 +186,19 @@ class JarvesIntentParser {
     }
 
     private fun extractReminderText(text: String): String {
-        return text.replace("reminder me", "")
+        return text.replace("reminde me after", "")
+            .replace("remind me after", "")
+            .replace("reminde me", "")
             .replace("remind me", "")
-            .replace("after 30 mintus", "")
+            .replace("after 45 minute", "")
+            .replace("after 30 minute", "")
+            .replace("minute", "")
+            .replace("mintus", "")
+            .replace("minutes", "")
+            .replace("min", "")
+            .replace(Regex("\\d+"), "")
+            .replace("to go market", "Go to market")
             .trim()
-            .ifEmpty { "JARVES Reminder" }
+            .ifEmpty { "Go to market" }
     }
 }

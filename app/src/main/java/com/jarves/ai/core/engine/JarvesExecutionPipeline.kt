@@ -12,6 +12,7 @@ class JarvesExecutionPipeline(private val context: Context) {
     private val youtubeController = YouTubeController(context)
     private val taskScheduler = TaskScheduler(context)
     private val appLauncherController = AppLauncherController(context)
+    private val moneyLedgerController = MoneyLedgerController(context)
     private val ttsManager = JarvesTTSManager(context)
 
     fun executeActions(actions: List<JarvesAction>): String {
@@ -51,6 +52,12 @@ class JarvesExecutionPipeline(private val context: Context) {
                 }
                 is JarvesAction.LaunchApp -> {
                     appLauncherController.launchApp(action.appName)
+                }
+                is JarvesAction.RecordMoney -> {
+                    moneyLedgerController.recordMoney(action.person, action.amount, action.isReceive)
+                }
+                is JarvesAction.QueryMoney -> {
+                    moneyLedgerController.queryMoney(action.person)
                 }
                 is JarvesAction.GeneralQuery -> {
                     "Sir, processing '${action.prompt}'..."
