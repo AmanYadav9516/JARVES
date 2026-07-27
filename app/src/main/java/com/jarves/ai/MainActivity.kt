@@ -4,9 +4,9 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
@@ -20,7 +20,7 @@ import com.jarves.ai.theme.JarvesTheme
 import com.jarves.ai.ui.HomeScreen
 import com.jarves.ai.ui.SettingsScreen
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : ComponentActivity() {
 
     private val requestPermissionsLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -33,36 +33,38 @@ class MainActivity : AppCompatActivity() {
             requestJarvesPermissions()
         }
 
-        setContent {
-            JarvesTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = Color(0xFF0A0D14)
-                ) {
-                    val authViewModel = remember { AuthViewModel() }
-                    var currentScreen by remember { mutableStateOf("home") }
+        runCatching {
+            setContent {
+                JarvesTheme {
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = Color(0xFF0A0D14)
+                    ) {
+                        val authViewModel = remember { AuthViewModel() }
+                        var currentScreen by remember { mutableStateOf("home") }
 
-                    if (!authViewModel.isLoggedIn) {
-                        if (authViewModel.isSignUpMode) {
-                            SignUpScreen(
-                                authViewModel = authViewModel,
-                                onNavigateToLogin = { authViewModel.isSignUpMode = false }
-                            )
+                        if (!authViewModel.isLoggedIn) {
+                            if (authViewModel.isSignUpMode) {
+                                SignUpScreen(
+                                    authViewModel = authViewModel,
+                                    onNavigateToLogin = { authViewModel.isSignUpMode = false }
+                                )
+                            } else {
+                                LoginScreen(
+                                    authViewModel = authViewModel,
+                                    onNavigateToSignUp = { authViewModel.isSignUpMode = true }
+                                )
+                            }
                         } else {
-                            LoginScreen(
-                                authViewModel = authViewModel,
-                                onNavigateToSignUp = { authViewModel.isSignUpMode = true }
-                            )
-                        }
-                    } else {
-                        when (currentScreen) {
-                            "home" -> HomeScreen(
-                                onNavigateToSettings = { currentScreen = "settings" }
-                            )
-                            "settings" -> SettingsScreen(
-                                authViewModel = authViewModel,
-                                onBackClick = { currentScreen = "home" }
-                            )
+                            when (currentScreen) {
+                                "home" -> HomeScreen(
+                                    onNavigateToSettings = { currentScreen = "settings" }
+                                )
+                                "settings" -> SettingsScreen(
+                                    authViewModel = authViewModel,
+                                    onBackClick = { currentScreen = "home" }
+                                )
+                            }
                         }
                     }
                 }
