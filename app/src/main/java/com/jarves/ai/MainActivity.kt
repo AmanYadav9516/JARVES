@@ -29,42 +29,40 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        runCatching {
-            requestJarvesPermissions()
-        }
+        setContent {
+            JarvesTheme {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = Color(0xFF0A0D14)
+                ) {
+                    val authViewModel = remember { AuthViewModel() }
+                    var currentScreen by remember { mutableStateOf("home") }
 
-        runCatching {
-            setContent {
-                JarvesTheme {
-                    Surface(
-                        modifier = Modifier.fillMaxSize(),
-                        color = Color(0xFF0A0D14)
-                    ) {
-                        val authViewModel = remember { AuthViewModel() }
-                        var currentScreen by remember { mutableStateOf("home") }
+                    LaunchedEffect(Unit) {
+                        requestJarvesPermissions()
+                    }
 
-                        if (!authViewModel.isLoggedIn) {
-                            if (authViewModel.isSignUpMode) {
-                                SignUpScreen(
-                                    authViewModel = authViewModel,
-                                    onNavigateToLogin = { authViewModel.isSignUpMode = false }
-                                )
-                            } else {
-                                LoginScreen(
-                                    authViewModel = authViewModel,
-                                    onNavigateToSignUp = { authViewModel.isSignUpMode = true }
-                                )
-                            }
+                    if (!authViewModel.isLoggedIn) {
+                        if (authViewModel.isSignUpMode) {
+                            SignUpScreen(
+                                authViewModel = authViewModel,
+                                onNavigateToLogin = { authViewModel.isSignUpMode = false }
+                            )
                         } else {
-                            when (currentScreen) {
-                                "home" -> HomeScreen(
-                                    onNavigateToSettings = { currentScreen = "settings" }
-                                )
-                                "settings" -> SettingsScreen(
-                                    authViewModel = authViewModel,
-                                    onBackClick = { currentScreen = "home" }
-                                )
-                            }
+                            LoginScreen(
+                                authViewModel = authViewModel,
+                                onNavigateToSignUp = { authViewModel.isSignUpMode = true }
+                            )
+                        }
+                    } else {
+                        when (currentScreen) {
+                            "home" -> HomeScreen(
+                                onNavigateToSettings = { currentScreen = "settings" }
+                            )
+                            "settings" -> SettingsScreen(
+                                authViewModel = authViewModel,
+                                onBackClick = { currentScreen = "home" }
+                            )
                         }
                     }
                 }
@@ -73,24 +71,26 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun requestJarvesPermissions() {
-        val permissionsToRequest = mutableListOf(
-            Manifest.permission.RECORD_AUDIO,
-            Manifest.permission.CALL_PHONE,
-            Manifest.permission.SEND_SMS,
-            Manifest.permission.READ_CONTACTS,
-            Manifest.permission.CAMERA
-        )
+        runCatching {
+            val permissionsToRequest = mutableListOf(
+                Manifest.permission.RECORD_AUDIO,
+                Manifest.permission.CALL_PHONE,
+                Manifest.permission.SEND_SMS,
+                Manifest.permission.READ_CONTACTS,
+                Manifest.permission.CAMERA
+            )
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            permissionsToRequest.add(Manifest.permission.POST_NOTIFICATIONS)
-        }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                permissionsToRequest.add(Manifest.permission.POST_NOTIFICATIONS)
+            }
 
-        val ungranted = permissionsToRequest.filter {
-            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
-        }
+            val ungranted = permissionsToRequest.filter {
+                ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+            }
 
-        if (ungranted.isNotEmpty()) {
-            requestPermissionsLauncher.launch(ungranted.toTypedArray())
+            if (ungranted.isNotEmpty()) {
+                requestPermissionsLauncher.launch(ungranted.toTypedArray())
+            }
         }
     }
 }
