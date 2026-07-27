@@ -11,8 +11,8 @@ android {
         applicationId = "com.jarves.ai"
         minSdk = 26
         targetSdk = 34
-        versionCode = 6
-        versionName = "1.0.5"
+        versionCode = 7
+        versionName = "1.0.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -61,11 +61,6 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.material.icons)
     implementation(libs.lottie.compose)
-    
-    // Firebase (Zero-Cost Auth & DB)
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.auth)
-    implementation(libs.firebase.firestore)
 
     // Background & Device Control
     implementation(libs.androidx.work.runtime)
